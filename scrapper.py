@@ -41,13 +41,13 @@ def buildGroupedMushroomsCsv(filename):
 
 
 
-# buildAllMushroomsCsv("mushrooms.csv")
+buildAllMushroomsCsv("mushrooms.csv")
 df_grouped = buildGroupedMushroomsCsv('mushrooms-grouped.csv')
 
 df_full_info = pd.read_csv("mushrooms-full-info.csv", sep='\t')
 
 for index, row in df_grouped.iterrows():
-    time.sleep(random.randint(1,4)) # avoid getting banned
+    time.sleep(random.randint(2,4)) # avoid getting blocked
     dict = row.to_dict()
     fullInfoUrl = dict['Resource-URL']
     response = requests.get(fullInfoUrl)
@@ -55,17 +55,27 @@ for index, row in df_grouped.iterrows():
         soup = BeautifulSoup(response.text, 'html.parser')
         pageBody = soup.find(class_= "post-bodycopy")
         characteristics = pageBody.find_all("strong")
+        images = pageBody.find_all("img")
         new_df = pd.DataFrame({'Latin-Title': [dict['Latin-Title']], 'Bulgarian-Title': [dict['Bulgarian-Title']],'Resource-URL': [dict['Resource-URL']]})
         for c in characteristics:
-            cName = c.next_element
-            cContent = c.next_sibling
-            if c.contents and c.name != 'br' and cContent.name !='br' and cName.name != 'br' and cName.text != '\xa0':
+            cName = c.get_text(strip=True)
+            cContent = ""
+            for sibling in c.next_siblings:
+                if sibling.name == 'strong':
+                    break
+                cContent += sibling.get_text(strip=True) if hasattr(sibling, 'get_text') else str(sibling).strip()
+                cContent += " "
+            if cName and cContent:
                 new_df[cName] = cContent
-
+        for i, img in enumerate(images):
+            new_df[f"Image-{i+1}"] = img['src']
         df_full_info = pd.concat([df_full_info, new_df], ignore_index=True)
-
+        df_full_info.to_csv("mushrooms-full-info.csv", sep='\t', index=False)
+    else:            
+        print(f"Request to {fullInfoUrl} failed. Code: {response.status_code}")
+                         
     # ensure we do not make too many requests when testing
-    if(index == 10): break
+    #if(index == 5): break
 
 
-df_full_info.to_csv("mushrooms-full-info.csv", sep='\t', index=False)
+#df_full_info.to_csv("mushrooms-full-info.csv", sep='\t', index=False)
