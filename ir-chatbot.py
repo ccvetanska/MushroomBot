@@ -1,8 +1,7 @@
-from preprocess import preprocess_mushrooms, preprocess_mushroom
+from preprocess import preprocess_mushroom
 # from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
-from collections import defaultdict
 import numpy as np
 import json
 
@@ -17,7 +16,8 @@ class MushroomBot:
     with open("corpus/parsed_mushrooms_data.json", "r", encoding="utf-8") as file:
       self.mushrooms = json.load(file)
 
-    self.preprocessed_mushrooms = preprocess_mushrooms(self.mushrooms)
+    with open("corpus/preprocessed_mushrooms.json", "r", encoding="utf-8") as file:
+      self.preprocessed_mushrooms = json.load(file)
 
     self.vectorizers = {}
     self.tf_idf_vectors = {}
@@ -40,7 +40,7 @@ class MushroomBot:
     similarities = self.compute_similarities(preprocessed_mushroom)
     max_similarity_index = np.argmax(similarities)
 
-    print(f"Best match: {self.mushrooms[max_similarity_index]}")
+    print(f"Best match: {self.mushrooms[max_similarity_index]['bgName']}")
     print(f"Similarity: {np.max(similarities)}")
 
   def build_mushroom(self):
