@@ -9,9 +9,8 @@ class MushroomBot:
   exit_commands = ("стоп", "спри", "стига", "чао", "довиждане", "край")
   underside_values = {"gills": ("ламели", "ресни"), "pores": ("пори"), "tubes": ("тубули", "дълбоки пори")}
 
-  BOLD = "\033[1m"
+  COLOR = "\033[38;5;77m"
   RESET = "\033[0m"
-  COLOR = "\033[32m"
 
   def __init__(self):
     # self.model = SentenceTransformer('sentence-transformers/LaBSE')
@@ -127,7 +126,7 @@ class MushroomBot:
     print(self.format_message("Беше ми приятно да ти помагам с разпознаването на гъби! 🍄 Ако имаш още въпроси или срещнеш нови гъби, не се колебай да ме потърсиш отново. До скоро! 👋"))
   
   def format_message(self, message):
-    return f"\n{self.BOLD}{self.COLOR}{message}{self.RESET}\n"
+    return f"\n{self.COLOR}{message}{self.RESET}\n"
 
 mushroom_bot = MushroomBot()
 
