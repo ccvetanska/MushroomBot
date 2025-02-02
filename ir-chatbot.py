@@ -7,6 +7,7 @@ import json
 
 class MushroomBot:
   exit_commands = ("стоп", "спри", "стига", "чао", "довиждане", "край")
+  underside_values = {"gills": ("ламели", "ресни"), "pores": ("пори"), "tubes": ("тубули", "дълбоки пори")}
 
   def __init__(self):
     # self.model = SentenceTransformer('sentence-transformers/LaBSE')
@@ -43,13 +44,16 @@ class MushroomBot:
     print(f"Best match: {self.mushrooms[max_similarity_index]['bgName']}")
     print(f"Similarity: {np.max(similarities)}")
 
-    if "да" in input("Искаш ли да разпознаеш друга гъба? 🍄").lower():
+    if "да" in input("Искаш ли да разпознаеш друга гъба? 🍄\n").lower():
       self.chat()
 
   def build_mushroom(self):
     mushroom = {key: "Няма информация" for key in self.questions}
 
     for key, questions in self.questions.items():
+      if key in self.underside_values and mushroom["underside"].lower() not in self.underside_values[key]:
+        continue
+
       for question in questions:
         reply = input(question + "\n")
         if self.should_exit(reply):
