@@ -9,6 +9,10 @@ class MushroomBot:
   exit_commands = ("стоп", "спри", "стига", "чао", "довиждане", "край")
   underside_values = {"gills": ("ламели", "ресни"), "pores": ("пори"), "tubes": ("тубули", "дълбоки пори")}
 
+  BOLD = "\033[1m"
+  RESET = "\033[0m"
+  COLOR = "\033[32m"
+
   def __init__(self):
     # self.model = SentenceTransformer('sentence-transformers/LaBSE')
     with open("corpus/questions.json", "r", encoding="utf-8") as file:
@@ -30,7 +34,7 @@ class MushroomBot:
     # self.mushrooms_embeddings = [self.model.encode(list(mushroom.values())) for mushroom in self.mushrooms]
 
   def welcome(self):
-    print("Здравей, аз съм твоят помощник за разпознаване на гъби. 🍄 Ще ти задам няколко въпроса за гъбата, която искаш да идентифицираш и ще се постарая да намеря най-близкото съвпадение. Нека да започваме!")
+    print(self.format_message("Здравей, аз съм твоят помощник за разпознаване на гъби. 🍄 Ще ти задам няколко въпроса за гъбата, която искаш да идентифицираш и ще се постарая да намеря най-близкото съвпадение. Нека да започваме!"))
   
   def chat(self):
     should_exit, input_mushroom = self.build_mushroom()
@@ -44,7 +48,7 @@ class MushroomBot:
     print(f"Best match: {self.mushrooms[max_similarity_index]['bgName']}")
     print(f"Similarity: {np.max(similarities)}")
 
-    if "да" in input("Искаш ли да разпознаеш друга гъба? 🍄\n").lower():
+    if "да" in input(self.format_message("Искаш ли да разпознаеш друга гъба? 🍄")).lower():
       self.chat()
 
   def build_mushroom(self):
@@ -55,7 +59,7 @@ class MushroomBot:
         continue
 
       for question in questions:
-        reply = input(question + "\n")
+        reply = input(self.format_message(question))
         if self.should_exit(reply):
           return True, mushroom
         
@@ -120,7 +124,10 @@ class MushroomBot:
   #   return np.mean(semantic_similarities)
 
   def goodbye(self):
-    print("Беше ми приятно да ти помагам с разпознаването на гъби! 🍄 Ако имаш още въпроси или срещнеш нови гъби, не се колебай да ме потърсиш отново. До скоро! 👋")
+    print(self.format_message("Беше ми приятно да ти помагам с разпознаването на гъби! 🍄 Ако имаш още въпроси или срещнеш нови гъби, не се колебай да ме потърсиш отново. До скоро! 👋"))
+  
+  def format_message(self, message):
+    return f"\n{self.BOLD}{self.COLOR}{message}{self.RESET}\n"
 
 mushroom_bot = MushroomBot()
 
