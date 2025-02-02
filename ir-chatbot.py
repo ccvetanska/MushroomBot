@@ -43,6 +43,9 @@ class MushroomBot:
     print(f"Best match: {self.mushrooms[max_similarity_index]['bgName']}")
     print(f"Similarity: {np.max(similarities)}")
 
+    if "да" in input("Искаш ли да разпознаеш друга гъба? 🍄").lower():
+      self.chat()
+
   def build_mushroom(self):
     mushroom = {key: "Няма информация" for key in self.questions}
 
