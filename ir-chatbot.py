@@ -38,10 +38,24 @@ class MushroomBot:
     
     preprocessed_mushroom = preprocess_mushroom(input_mushroom)
     similarities = self.compute_similarities(preprocessed_mushroom)
-    max_similarity_index = np.argmax(similarities)
+    sorted_indices = np.argsort(similarities)[::-1]
 
-    print(f"Best match: {self.mushrooms[max_similarity_index]['bgName']}")
-    print(f"Similarity: {np.max(similarities)}")
+    max_similarity_index = sorted_indices[0]
+    best_match = self.mushrooms[max_similarity_index]
+
+    print(f"Най-добро съвпадение: {best_match['bgName']}, {self.mushrooms[max_similarity_index]['latinTitle']}")
+    print(f"Кратко описание: {best_match['summary']}")
+    print(f"Сходство: {np.max(similarities)}")
+    if best_match['images'] and best_match['images'][0]:
+      print(f"Снимка: {best_match['images'][0]}")
+    
+    second_best_match = self.mushrooms[sorted_indices[1]]
+    third_best_match = self.mushrooms[sorted_indices[2]]
+    if(second_best_match):
+      print(f"Други възможности:")
+      print(f"{second_best_match['bgName']}, {second_best_match['latinTitle']}, Снимка: {second_best_match['images'][0] or 'Няма снимка'}")
+      if(third_best_match):
+        print(f"{third_best_match['bgName']}, {third_best_match['latinTitle']}, Снимка: {third_best_match['images'][0] or 'Няма снимка'}")
 
   def build_mushroom(self):
     mushroom = {key: "Няма информация" for key in self.questions}
