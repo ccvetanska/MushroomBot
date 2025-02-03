@@ -1,17 +1,12 @@
 from preprocess import preprocess_mushroom
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
-from rich.console import Console
-from PIL import Image
-import requests
-from io import BytesIO
 import numpy as np
 import json
 
 class MushroomBot:
   exit_commands = ("стоп", "спри", "стига", "чао", "довиждане", "край")
   underside_values = {"gills": ("ламели", "ресни"), "pores": ("пори"), "tubes": ("тръбички", "дълбоки пори")}
-  console = Console()
 
   GREEN = "\033[38;5;77m"
   RED = "\033[38;5;196m"
