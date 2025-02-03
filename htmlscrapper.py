@@ -5,6 +5,11 @@ import time
 import random
 import json
 from bs4 import BeautifulSoup
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
+import stanza
+import networkx as nx
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 def downloadHtmlPages():
     # Create the data directory if it doesn't exist
@@ -32,6 +37,31 @@ def downloadHtmlPages():
 
 HTML_FOLDER = "data/"
 
+stanza.download('bg', processors='tokenize,lemma,pos', verbose=False)
+nlp = stanza.Pipeline('bg', processors='tokenize,lemma,pos', download_method=None, verbose=False)
+
+def summerize_text(text):
+    doc = nlp(text)
+
+    # split to sentences
+    sentences = [sentence.text for sentence in doc.sentences]
+
+    # vectorize sentences with TF-IDF, this step could be improved. BERT model?
+    vectorizer = TfidfVectorizer()
+    sentence_vectors = vectorizer.fit_transform(sentences).toarray()
+
+    # create a similarity matrix, then a graph
+    similarity_matrix = cosine_similarity(sentence_vectors, sentence_vectors)
+    nx_graph = nx.from_numpy_array(similarity_matrix)
+
+    # calculate pagerank scores: how important is each sentence?
+    scores = nx.pagerank(nx_graph)
+    ranked_sentences = sorted(((scores[i], s) for i, s in enumerate(sentences)), reverse=True)
+
+    # Get top 3 sentences as the summary
+    summary = " ".join([s for _, s in ranked_sentences[:3]])
+    return summary
+
 def parse_mushroom_html(file_path):
     with open(file_path, "r", encoding="utf-8") as file:
         soup = BeautifulSoup(file, "html.parser")
@@ -43,8 +73,13 @@ def parse_mushroom_html(file_path):
     # there could be some paragraphs that don't have a <strong> tag as title
     # and therefore are not extracted in the loop below
     description_div = soup.find("div", class_="post-bodycopy")
-    description = description_div.text.strip() if description_div else "Няма описание"
-    description = description.replace("\n", " ")
+    
+    if not description_div: # probably a 404 page
+        return None
+
+    description = " ".join([p.get_text() for p in description_div.find_all("p") if "wp-caption-text" not in p.get('class', [])]) if description_div else ""
+
+    description_summary = summerize_text(description)
 
     bg_alias = "Няма информация"
     world_alias = "Няма информация"
@@ -77,7 +112,7 @@ def parse_mushroom_html(file_path):
                 flesh = p.text.replace(strong_text.text, "").strip()
             if "Местообитание" in strong_text.text:
                 habitat = p.text.replace(strong_text.text, "").strip()
-            if"У нас" in strong_text.text:
+            if "У нас" in strong_text.text:
                 bg_alias = p.text.replace(strong_text.text, "").strip()
             if "По света" in strong_text.text:
                 world_alias = p.text.replace(strong_text.text, "").strip()
@@ -90,6 +125,9 @@ def parse_mushroom_html(file_path):
             if "Ламели" in strong_text.text:    
                 gills = p.text.replace(strong_text.text, "").strip()
                 underside = "Ламели"
+            if "Тръбички" in strong_text.text:    
+                tubes = p.text.replace(strong_text.text, "").strip()
+                underside = "Тръбички"
             if "Пори" in strong_text.text:    
                 pores = p.text.replace(strong_text.text, "").strip()
                 underside = "Пори"
@@ -131,8 +169,12 @@ def parse_mushroom_html(file_path):
         "toxins": toxins,
         "similarSpecies": similar_species,
         "images": images,
-        "fullDescription": description
+        "fullDescription": description,
+        "summary": description_summary
     }
+
+# Download HTML pages
+# downloadHtmlPages()
 
 # Read all HTML files and extract data
 mushroom_data = []
@@ -140,7 +182,8 @@ for filename in os.listdir(HTML_FOLDER):
     if filename.endswith(".html"):
         file_path = os.path.join(HTML_FOLDER, filename)
         data = parse_mushroom_html(file_path)
-        mushroom_data.append(data)
+        if data:
+             mushroom_data.append(data)
 
 # Save the data to a JSON file
 output_file = os.path.join("corpus/", "parsed_mushrooms_data.json")
