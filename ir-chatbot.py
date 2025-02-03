@@ -1,19 +1,23 @@
 from preprocess import preprocess_mushroom
-# from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
+from rich.console import Console
+from PIL import Image
+import requests
+from io import BytesIO
 import numpy as np
 import json
 
 class MushroomBot:
   exit_commands = ("стоп", "спри", "стига", "чао", "довиждане", "край")
-  underside_values = {"gills": ("ламели", "ресни"), "pores": ("пори"), "tubes": ("тубули", "дълбоки пори")}
+  underside_values = {"gills": ("ламели", "ресни"), "pores": ("пори"), "tubes": ("тръбички", "дълбоки пори")}
+  console = Console()
 
-  COLOR = "\033[38;5;77m"
+  GREEN = "\033[38;5;77m"
+  RED = "\033[38;5;196m"
   RESET = "\033[0m"
 
   def __init__(self):
-    # self.model = SentenceTransformer('sentence-transformers/LaBSE')
     with open("corpus/questions.json", "r", encoding="utf-8") as file:
       self.questions = json.load(file)
 
@@ -29,8 +33,6 @@ class MushroomBot:
       docs = self.get_mushroom_values(self.preprocessed_mushrooms, key)
       self.vectorizers[key] = TfidfVectorizer()
       self.tf_idf_vectors[key] = self.vectorizers[key].fit_transform(docs)
-    
-    # self.mushrooms_embeddings = [self.model.encode(list(mushroom.values())) for mushroom in self.mushrooms]
 
   def welcome(self):
     print(self.format_message("Здравей, аз съм твоят помощник за разпознаване на гъби. 🍄 Ще ти задам няколко въпроса за гъбата, която искаш да идентифицираш и ще се постарая да намеря най-близкото съвпадение. Нека да започваме!"))
@@ -42,24 +44,8 @@ class MushroomBot:
     
     preprocessed_mushroom = preprocess_mushroom(input_mushroom)
     similarities = self.compute_similarities(preprocessed_mushroom)
-    sorted_indices = np.argsort(similarities)[::-1]
 
-    max_similarity_index = sorted_indices[0]
-    best_match = self.mushrooms[max_similarity_index]
-
-    print(f"Най-добро съвпадение: {best_match['bgName']}, {self.mushrooms[max_similarity_index]['latinTitle']}")
-    print(f"Кратко описание: {best_match['summary']}")
-    print(f"Сходство: {np.max(similarities)}")
-    if best_match['images'] and best_match['images'][0]:
-      print(f"Снимка: {best_match['images'][0]}")
-    
-    second_best_match = self.mushrooms[sorted_indices[1]]
-    third_best_match = self.mushrooms[sorted_indices[2]]
-    if(second_best_match):
-      print(f"Други възможности:")
-      print(f"{second_best_match['bgName']}, {second_best_match['latinTitle']}, Снимка: {second_best_match['images'][0] or 'Няма снимка'}")
-      if(third_best_match):
-        print(f"{third_best_match['bgName']}, {third_best_match['latinTitle']}, Снимка: {third_best_match['images'][0] or 'Няма снимка'}")
+    self.print_response(similarities)
 
     if "да" in input(self.format_message("Искаш ли да разпознаеш друга гъба? 🍄")).lower():
       self.chat()
@@ -117,30 +103,37 @@ class MushroomBot:
   
   def get_mushroom_values(self, mushrooms, key):
     return [mushroom[key] for mushroom in mushrooms]
-  
-  # def compute_similarities(self, mushroom):
-  #   input_mushroom_embeddings = self.model.encode(list(mushroom.values()))
 
-  #   similarities = []
-  #   for mushroom_embeddings in self.mushrooms_embeddings:
-  #     similarities.append(self.compute_similarity(input_mushroom_embeddings, mushroom_embeddings))
+  def print_response(self, similarities):
+    sorted_indices = np.argsort(similarities)[::-1]
+    best_match = self.mushrooms[sorted_indices[0]]
 
-  #   return similarities
-  
-  # def compute_similarity(self, input_mushroom_embeddings, mushroom_embeddings):
-  #   semantic_similarities = []
+    response = f"Благодаря за описанието! Въз основа на твоите отговори, най-вероятната гъба ({similarities[sorted_indices[0]]}%) е {best_match['bgName']} ({best_match['latinTitle']})"
 
-  #   for i in range(0, len(self.questions)):
-  #       similarity_attr = cosine_similarity([input_mushroom_embeddings[i]], [mushroom_embeddings[i]])[0][0]
-  #       semantic_similarities.append(similarity_attr)
+    response += f" ({best_match['images'][0]})\n\n" if best_match['images'] and best_match['images'][0] else ".\n\n"
 
-  #   return np.mean(semantic_similarities)
+    response += f"{best_match['summary']}\n\n"
+      
+    second_best_match = self.mushrooms[sorted_indices[1]]
+    if(second_best_match):
+      response += f"Втората най-вероятна гъба ({similarities[sorted_indices[1]]}%) е {second_best_match['bgName']} ({second_best_match['latinTitle']})."
+      
+      third_best_match = self.mushrooms[sorted_indices[2]]
+      if(third_best_match):
+        response += f" Третата по вероятност ({similarities[sorted_indices[2]]}%) е {third_best_match['bgName']} ({third_best_match['latinTitle']})."
+    
+    print(self.format_message(response))
+
+    print(self.format_important_message("ВНИМАНИЕ: Никога не яжте гъби само въз основа на информация в интернет и/или препоръките на този бот! Консумацията на отровни видове може да доведе до необратими последствия и смърт, а идентифицирането им е сложен процес, изискващ много опит."))
 
   def goodbye(self):
     print(self.format_message("Беше ми приятно да ти помагам с разпознаването на гъби! 🍄 Ако имаш още въпроси или срещнеш нови гъби, не се колебай да ме потърсиш отново. До скоро! 👋"))
   
   def format_message(self, message):
-    return f"\n{self.COLOR}{message}{self.RESET}\n"
+    return f"\n{self.GREEN}{message}{self.RESET}\n"
+  
+  def format_important_message(self, message):
+    return f"\n{self.RED}{message}{self.RESET}\n"
 
 mushroom_bot = MushroomBot()
 
