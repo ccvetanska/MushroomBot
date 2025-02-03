@@ -103,7 +103,7 @@ class MushroomBot:
     sorted_indices = np.argsort(similarities)[::-1]
     best_match = self.mushrooms[sorted_indices[0]]
 
-    response = f"Благодаря за описанието! Въз основа на твоите отговори, най-вероятната гъба ({similarities[sorted_indices[0]]}%) е {best_match['bgName']} ({best_match['latinTitle']})"
+    response = f"Благодаря за описанието! Въз основа на твоите отговори, най-вероятната гъба ({int(similarities[sorted_indices[0]] * 100)}%) е {best_match['bgName']} ({best_match['latinTitle']})"
 
     response += f" ({best_match['images'][0]})\n\n" if best_match['images'] and best_match['images'][0] else ".\n\n"
 
@@ -111,11 +111,11 @@ class MushroomBot:
       
     second_best_match = self.mushrooms[sorted_indices[1]]
     if(second_best_match):
-      response += f"Втората най-вероятна гъба ({similarities[sorted_indices[1]]}%) е {second_best_match['bgName']} ({second_best_match['latinTitle']})."
+      response += f"Втората най-вероятна гъба ({int(similarities[sorted_indices[1]] * 100)}%) е {second_best_match['bgName']} ({second_best_match['latinTitle']})."
       
       third_best_match = self.mushrooms[sorted_indices[2]]
       if(third_best_match):
-        response += f" Третата по вероятност ({similarities[sorted_indices[2]]}%) е {third_best_match['bgName']} ({third_best_match['latinTitle']})."
+        response += f" Третата по вероятност ({int(similarities[sorted_indices[2]] * 100)}%) е {third_best_match['bgName']} ({third_best_match['latinTitle']})."
     
     print(self.format_message(response))
 
