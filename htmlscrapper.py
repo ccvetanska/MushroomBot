@@ -5,11 +5,8 @@ import time
 import random
 import json
 from bs4 import BeautifulSoup
-import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
-import stanza
-import networkx as nx
-from sklearn.feature_extraction.text import TfidfVectorizer
+from summarizer import summarize_text
+
 
 def downloadHtmlPages():
     # Create the data directory if it doesn't exist
@@ -37,30 +34,6 @@ def downloadHtmlPages():
 
 HTML_FOLDER = "data/"
 
-stanza.download('bg', processors='tokenize,lemma,pos', verbose=False)
-nlp = stanza.Pipeline('bg', processors='tokenize,lemma,pos', download_method=None, verbose=False)
-
-def summerize_text(text):
-    doc = nlp(text)
-
-    # split to sentences
-    sentences = [sentence.text for sentence in doc.sentences]
-
-    # vectorize sentences with TF-IDF, this step could be improved. BERT model?
-    vectorizer = TfidfVectorizer()
-    sentence_vectors = vectorizer.fit_transform(sentences).toarray()
-
-    # create a similarity matrix, then a graph
-    similarity_matrix = cosine_similarity(sentence_vectors, sentence_vectors)
-    nx_graph = nx.from_numpy_array(similarity_matrix)
-
-    # calculate pagerank scores: how important is each sentence?
-    scores = nx.pagerank(nx_graph)
-    ranked_sentences = sorted(((scores[i], s) for i, s in enumerate(sentences)), reverse=True)
-
-    # Get top 3 sentences as the summary
-    summary = " ".join([s for _, s in ranked_sentences[:3]])
-    return summary
 
 def parse_mushroom_html(file_path):
     with open(file_path, "r", encoding="utf-8") as file:
@@ -79,7 +52,7 @@ def parse_mushroom_html(file_path):
 
     description = " ".join([p.get_text() for p in description_div.find_all("p") if "wp-caption-text" not in p.get('class', [])]) if description_div else ""
 
-    description_summary = summerize_text(description)
+    description_summary = summarize_text(description)
 
     bg_alias = "Няма информация"
     world_alias = "Няма информация"
