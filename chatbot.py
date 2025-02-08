@@ -6,7 +6,6 @@ import json
 
 class MushroomBot:
   exit_commands = ("стоп", "спри", "стига", "чао", "довиждане", "край")
-  unknown_replies = ("не знам", "не", "не видях", "не помня")
   underside_values = {"gills": ("ламели", "ресни"), "pores": ("пори"), "tubes": ("тръбички", "дълбоки пори")}
 
   GREEN = "\033[38;5;77m"
@@ -66,7 +65,8 @@ class MushroomBot:
     return False, mushroom
   
   def is_unknown(self, reply):
-    return not reply.strip() or reply.lower() in self.unknown_replies
+    #TODO
+    pass
 
   def should_exit(self, reply):
     for exit_command in self.exit_commands:
