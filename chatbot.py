@@ -5,7 +5,7 @@ import numpy as np
 import json
 
 class MushroomBot:
-  exit_commands = ("стоп", "спри", "стига", "чао", "довиждане", "край")
+  exit_commands = ("стоп", "спри", "чао", "довиждане", "край")
   underside_values = {"gills": ("ламели", "ресни"), "pores": ("пори"), "tubes": ("тръбички", "дълбоки пори")}
 
   GREEN = "\033[38;5;77m"
@@ -57,16 +57,9 @@ class MushroomBot:
         if self.should_exit(reply):
           return True, mushroom
         
-        if self.is_unknown(reply):
-          break
-        
         mushroom[key] = reply if mushroom[key] == "Няма информация" else mushroom[key] + " " + reply
     
     return False, mushroom
-  
-  def is_unknown(self, reply):
-    #TODO
-    pass
 
   def should_exit(self, reply):
     for exit_command in self.exit_commands:
