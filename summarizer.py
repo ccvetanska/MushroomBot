@@ -8,7 +8,7 @@ nltk.download('punkt_tab')
 from nltk.tokenize import sent_tokenize, word_tokenize
 
 def process_sentence(sentence): 
-    stopPhrases = ["Снимки", "Снимка", "Върни се до горе", "редакция", "подготвиха", "галерия"]
+    stopPhrases = ["Снимки", "Снимка", "Върни се до горе", "редакция", "подготвиха", "галерия", "Автор на описанието"]
     if any(phrase in sentence for phrase in stopPhrases):
         return ""
     
@@ -31,7 +31,7 @@ def process_sentence(sentence):
         transformed_sentence = f"{first_word} {second_word} я наричат {sentence[(len(first_word) + len(second_word) + 1):].strip()}"
     elif first_word.endswith("Коментар"):
         transformed_sentence = f"{rest_of_sentence.lower()}"
-    elif first_word.endswith("Спори") or first_word.endswith("Ламели"):
+    elif first_word.endswith("Спори") or first_word.endswith("Ламели") or first_word.endswith("Пори"):
         transformed_sentence = f"{first_word}те са {rest_of_sentence.lower()}"
     if "(Източници" in transformed_sentence:
         transformed_sentence = re.sub(r"\s*\([^)]*\)", "", sentence).strip() 
