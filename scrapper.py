@@ -31,7 +31,7 @@ def buildAllMushroomsCsv(filename):
 
 # now merge all lines with equal "Latin-Title"
 def buildGroupedMushroomsCsv(filename):
-    df = pd.read_csv('mushrooms.csv')
+    df = pd.read_csv('mushroom_lists/mushrooms.csv')
     df_grouped = df.groupby('Latin-Title').agg({
         'Bulgarian-Title': lambda x: '|'.join(map(str, x)), 
         **{col: 'first' for col in df.columns if col != 'Latin-Title' and col != 'Bulgarian-Title'} 
@@ -41,10 +41,10 @@ def buildGroupedMushroomsCsv(filename):
 
 
 
-buildAllMushroomsCsv("mushrooms.csv")
+buildAllMushroomsCsv("mushroom_lists/mushrooms.csv")
 df_grouped = buildGroupedMushroomsCsv('mushrooms-grouped.csv')
 
-df_full_info = pd.read_csv("mushrooms-full-info.csv", sep='\t')
+df_full_info = pd.read_csv("mushroom_lists/mushrooms-full-info.csv", sep='\t')
 
 for index, row in df_grouped.iterrows():
     time.sleep(random.randint(2,4)) # avoid getting blocked
@@ -70,7 +70,7 @@ for index, row in df_grouped.iterrows():
         for i, img in enumerate(images):
             new_df[f"Image-{i+1}"] = img['src']
         df_full_info = pd.concat([df_full_info, new_df], ignore_index=True)
-        df_full_info.to_csv("mushrooms-full-info.csv", sep='\t', index=False)
+        df_full_info.to_csv("mushroom_lists/mushrooms-full-info.csv", sep='\t', index=False)
     else:            
         print(f"Request to {fullInfoUrl} failed. Code: {response.status_code}")
                          

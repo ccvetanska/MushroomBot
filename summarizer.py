@@ -44,7 +44,7 @@ def summarize_text(text, max_sentences=5):
 
     processed_sentences = [process_sentence(s) for s in sentences]
 
-    # vectorize sentences with Count vectorizer, better than TF-IDF for the task (summary)
+    # vectorize sentences with Count vectorizer, seems better than TF-IDF for the task (summary)
     # This step could be improved. BERT model?
     vectorizer = CountVectorizer()
     sentence_vectors = vectorizer.fit_transform(processed_sentences).toarray()

@@ -13,8 +13,8 @@ def downloadHtmlPages():
     os.makedirs('data', exist_ok=True)
 
     # Open the CSV file
-    with open('mushrooms-grouped.csv', newline='', encoding='utf-8' ) as csvfile:
-        df_grouped = pd.read_csv("mushrooms-grouped.csv", sep='\t')
+    with open('mushroom_lists/mushrooms-grouped.csv', newline='', encoding='utf-8' ) as csvfile:
+        df_grouped = pd.read_csv("mushroom_lists/mushrooms-grouped.csv", sep='\t')
         
         # Iterate through each row in the CSV
         for index, row in df_grouped.iterrows():
@@ -23,7 +23,6 @@ def downloadHtmlPages():
             resource_url = dict['Resource-URL']
             latin_title = dict['Latin-Title']
             
-            # Make a request to the resource URL
             response = requests.get(resource_url)
             
             # Save the content to an HTML file
