@@ -2,5 +2,5 @@ example_qa_dataset_generator.py
 *.pyc
 model-training.py
 config/elastic_credentials.json
-tests.html
+*.html
 tests.ods
